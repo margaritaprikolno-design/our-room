@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Наша Комната • Уютный Дашборд</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDK (v9 compatibility scripts for easy direct integration) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        latte: '#FFF8E7',
+                        sangria: {
+                            500: '#930500',
+                            600: '#7A0400',
+                            50: '#FDF2F2'
+                        },
+                        cornflower: {
+                            500: '#95BBEA',
+                            600: '#6E9CD6',
+                            50: '#F0F6FC',
+                            100: '#E1EFFF'
+                        },
+                        sage: {
+                            500: '#7F9F7F',
+                            600: '#638263',
+                            50: '#F4F7F4'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Comfortaa', 'cursive']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FFF8E7;
+            background-image: 
+                linear-gradient(45deg, rgba(149, 187, 234, 0.08) 25%, transparent 25%), 
+                linear-gradient(-45deg, rgba(149, 187, 234, 0.08) 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, rgba(149, 187, 234, 0.08) 75%), 
+                linear-gradient(-45deg, transparent 75%, rgba(149, 187, 234, 0.08) 75%);
+            background-size: 32px 32px;
+            background-position: 0 0, 0 16px, 16px -16px, -16px 0px;
+            color: #2D3748;
+            font-family: 'Inter', sans-serif;
+        }
+        .font-display {
+            font-family: 'Comfortaa', cursive;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FFF8E7;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #95BBEA;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6E9CD6;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- Header -->
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-cornflower-100 shadow-xs">
+        <div class="max-w-6xl mx-auto px-4 py-3.5 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-sangria-500 text-white flex items-center justify-center font-display font-bold text-xl shadow-xs">
+                    🍒
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-lg md:text-xl text-slate-800">Наша Комната</h1>
+                    <p class="text-xs text-slate-500">Даша • Маша • Рита • Света</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <span id="syncStatus" class="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Синхронизировано
+                </span>
+                <button onclick="resetData()" class="px-3 py-1.5 text-xs text-slate-600 hover:text-sangria-500 border border-slate-200 hover:border-sangria-200 rounded-xl transition flex items-center gap-1.5 bg-white shadow-2xs">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span class="hidden sm:inline">Сбросить всё</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6">
+
+        <!-- Dynamic Rules & Nuances Section -->
+        <section class="bg-white/90 backdrop-blur-sm border border-cornflower-200 rounded-3xl p-5 shadow-sm">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-cornflower-100 text-cornflower-600 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-display font-bold text-base md:text-lg text-slate-800">Правила & Нюансы комнаты</h2>
+                        <p class="text-xs text-slate-400">Добавляйте и настраивайте свои договоренности</p>
+                    </div>
+                </div>
+                <button onclick="toggleAddRuleForm()" class="bg-cornflower-500 hover:bg-cornflower-600 text-white px-3.5 py-2 rounded-2xl text-xs font-semibold shadow-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i> Добавить правило
+                </button>
+            </div>
+
+            <!-- Add Rule Form -->
+            <div id="addRuleForm" class="hidden mb-4 bg-cornflower-50/60 border border-cornflower-200 p-4 rounded-2xl space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Новое правило / нюанс</span>
+                    <button onclick="toggleAddRuleForm()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <form onsubmit="handleAddRule(event)" class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="ruleIcon" placeholder="🎨" class="w-16 px-3 py-2 text-xs text-center rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-cornflower-500" value="✨" maxlength="2">
+                    <input type="text" id="ruleText" placeholder="Например: Молоко покупаем по очереди..." required class="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-cornflower-500">
+                    <button type="submit" class="px-4 py-2 text-xs bg-sangria-500 text-white rounded-xl font-semibold hover:bg-sangria-600 transition shadow-xs">Сохранить</button>
+                </form>
+            </div>
+
+            <!-- Rules Grid -->
+            <div id="rulesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Top Row: Milk Tracker + Balance Dashboard -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- 1. Milk Rotation Card (4 cols) -->
+            <section class="lg:col-span-4 bg-white/90 backdrop-blur-sm rounded-3xl p-5 border border-amber-200/80 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm">
+                                🥛
+                            </div>
+                            <h2 class="font-display font-bold text-base text-slate-800">Очередь за молоком</h2>
+                        </div>
+                        <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">Без Риты</span>
+                    </div>
+
+                    <div class="bg-amber-50/50 rounded-2xl p-4 border border-amber-100 text-center shadow-2xs my-2">
+                        <p class="text-xs text-slate-400 mb-1">Сейчас покупает молоко:</p>
+                        <div id="currentMilkBuyer" class="text-xl font-display font-bold text-amber-700 flex items-center justify-center gap-2">
+                            <!-- JS Populates -->
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Очередность: Света ➔ Даша ➔ Маша</p>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <button onclick="advanceMilkQueue()" class="w-full py-2.5 bg-sangria-500 hover:bg-sangria-600 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Я купила молоко! (Следующая)</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 2. Balance Dashboard (8 cols) -->
+            <section class="lg:col-span-8 bg-white/90 backdrop-blur-sm rounded-3xl p-5 md:p-6 border border-cornflower-200 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 rounded-xl bg-cornflower-100 text-cornflower-600 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-scale-balanced"></i>
+                            </div>
+                            <h2 class="font-display font-bold text-lg text-slate-800">Баланс общих покупок</h2>
+                        </div>
+                        <span class="text-xs text-slate-400">Учитывает кто уже скинулся</span>
+                    </div>
+
+                    <!-- Roommate balance cards -->
+                    <div id="balanceCards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Suggested Debt Transfers -->
+                    <div class="bg-latte rounded-2xl p-3.5 border border-amber-100/60">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrows-split-up-and-left text-sangria-500"></i>
+                            Кому и сколько перевести прямо сейчас:
+                        </h3>
+                        <div id="settlementList" class="space-y-1.5 text-xs text-slate-700">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Middle Row: Duty Rotation with Manual Date Text Entry -->
+        <section class="bg-white/90 backdrop-blur-sm rounded-3xl p-5 md:p-6 border border-sage-500/20 shadow-sm">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-sage-100 text-sage-600 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-broom"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-display font-bold text-lg text-slate-800">График дежурств по уборке</h2>
+                        <p class="text-xs text-slate-400">1 раз в неделю. День выбирает каждая сама!</p>
+                    </div>
+                </div>
+                <button onclick="rotateDuty()" class="text-xs bg-sage-50 text-sage-600 px-3.5 py-2 rounded-xl font-medium hover:bg-sage-100 transition flex items-center justify-center gap-1.5 shadow-2xs">
+                    <i class="fa-solid fa-rotate"></i> Следующая неделя (Сдвиг)
+                </button>
+            </div>
+
+            <div id="dutyGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Main Purchases & Individual Settlement Section -->
+        <section class="bg-white/90 backdrop-blur-sm rounded-3xl p-5 md:p-6 border border-cornflower-200 shadow-sm">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-6">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-rose-100 text-sangria-500 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-display font-bold text-lg text-slate-800">Общие траты и галочки расчёта</h2>
+                        <p class="text-xs text-slate-400">Нажмите на своё имя, когда перевели деньги — вы сразу станете <span class="text-emerald-600 font-bold">зелёной!</span></p>
+                    </div>
+                </div>
+                
+                <button onclick="toggleAddPurchaseModal()" class="bg-sangria-500 hover:bg-sangria-600 text-white px-4 py-2.5 rounded-2xl text-xs font-semibold shadow-sm hover:shadow transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Добавить покупку</span>
+                </button>
+            </div>
+
+            <!-- Add Purchase Form -->
+            <div id="addPurchaseForm" class="hidden mb-6 bg-latte border border-amber-200/80 p-4 rounded-2xl space-y-4">
+                <div class="flex justify-between items-center border-b border-amber-200 pb-2">
+                    <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wide">Новая покупка</h3>
+                    <button onclick="toggleAddPurchaseModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <form onsubmit="handleAddPurchase(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+                    <div class="lg:col-span-4">
+                        <label class="block text-xs text-slate-500 mb-1">Что куплено</label>
+                        <input type="text" id="purchTitle" placeholder="например, Туалетная бумага 8шт" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-sangria-500">
+                    </div>
+                    <div class="lg:col-span-2">
+                        <label class="block text-xs text-slate-500 mb-1">Сумма (₽)</label>
+                        <input type="number" id="purchAmount" step="1" min="1" placeholder="320" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-sangria-500">
+                    </div>
+                    <div class="lg:col-span-3">
+                        <label class="block text-xs text-slate-500 mb-1">Кто купила (Оплатила)</label>
+                        <select id="purchPayer" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sangria-500 bg-white">
+                            <option value="Даша">Даша</option>
+                            <option value="Маша">Маша</option>
+                            <option value="Рита">Рита</option>
+                            <option value="Света">Света</option>
+                        </select>
+                    </div>
+                    <div class="lg:col-span-3">
+                        <label class="block text-xs text-slate-500 mb-1">На кого делим</label>
+                        <div class="flex gap-1.5 pt-1">
+                            <label class="inline-flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg text-xs cursor-pointer">
+                                <input type="checkbox" value="Даша" class="split-target" checked> Д
+                            </label>
+                            <label class="inline-flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg text-xs cursor-pointer">
+                                <input type="checkbox" value="Маша" class="split-target" checked> М
+                            </label>
+                            <label class="inline-flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg text-xs cursor-pointer">
+                                <input type="checkbox" value="Рита" class="split-target" checked> Р
+                            </label>
+                            <label class="inline-flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg text-xs cursor-pointer">
+                                <input type="checkbox" value="Света" class="split-target" checked> С
+                            </label>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-12 flex justify-end gap-2 mt-2">
+                        <button type="button" onclick="toggleAddPurchaseModal()" class="px-3 py-1.5 text-xs text-slate-500 hover:bg-white/80 rounded-xl">Отмена</button>
+                        <button type="submit" class="px-4 py-1.5 text-xs bg-sangria-500 text-white rounded-xl font-semibold hover:bg-sangria-600 transition">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Purchase List Cards -->
+            <div id="purchasesList" class="space-y-3">
+                <!-- Populated by JS -->
+            </div>
+            
+            <div id="emptyPurchasesMsg" class="hidden py-8 text-center text-slate-400 text-xs">
+                Пока нет записанных покупок. Добавьте первую с помощью кнопки выше!
+            </div>
+        </section>
+
+        <!-- SOS Inventory Checklist -->
+        <section class="bg-white/90 backdrop-blur-sm rounded-3xl p-5 md:p-6 border border-cornflower-200 shadow-sm">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-5">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-basket-shopping"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-display font-bold text-lg text-slate-800">Бытовой SOS-Список</h2>
+                        <p class="text-xs text-slate-400">Отмечайте, что заканчивается в комнате</p>
+                    </div>
+                </div>
+
+                <form onsubmit="handleAddStockItem(event)" class="flex gap-2">
+                    <input type="text" id="newStockTitle" placeholder="Новый предмет..." required class="px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-sangria-500 w-full sm:w-48">
+                    <button type="submit" class="bg-latte hover:bg-amber-100 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition border border-amber-200 flex-shrink-0">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div id="stockGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 text-center text-xs text-slate-500 py-4">
+        Уютная система комнаты • Даша, Маша, Рита, Света 🍒✨
+    </footer>
+
+    <!-- Firebase & App Logic -->
+    <script>
+        // --- 1. FIREBASE CONFIGURATION ---
+        // URL вашей созданной базы данных
+        const firebaseConfig = {
+            databaseURL: "https://project-8540939123098490964-default-rtdb.firebaseio.com"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const roomRef = db.ref('dorm_room_data');
+
+        const ROOMMATES = ["Даша", "Маша", "Рита", "Света"];
+        const MILK_QUEUE = ["Света", "Даша", "Маша"];
+
+        const DEFAULT_RULES = [
+            { id: 1, icon: "🥛", text: "Молоко: Света ➔ Даша ➔ Маша" },
+            { id: 2, icon: "🧹", text: "Уборка: день выбираем сами" },
+            { id: 3, icon: "🤫", text: "Тишина после 23:00" },
+            { id: 4, icon: "☕", text: "Чай & Кофе — общие" }
+        ];
+
+        const DEFAULT_DUTY_ROTATION = [
+            { weekLabel: "Текущая неделя", person: "Даша", date: "12 марта 2026", done: false },
+            { weekLabel: "Следующая неделя", person: "Маша", date: "Суббота", done: false },
+            { weekLabel: "Через 2 недели", person: "Рита", date: "", done: false },
+            { weekLabel: "Через 3 недели", person: "Света", date: "", done: false }
+        ];
+
+        const DEFAULT_PURCHASES = [
+            { 
+                id: 1, 
+                title: "Туалетная бумага 8 роллов", 
+                amount: 320, 
+                payer: "Маша", 
+                targets: ["Даша", "Маша", "Рита", "Света"], 
+                paidBy: { "Маша": true, "Даша": true, "Рита": false, "Света": false },
+                date: "01.03" 
+            }
+        ];
+
+        const DEFAULT_STOCK = [
+            { id: 1, title: "Туалетная бумага", status: "Есть", assignee: "" },
+            { id: 2, title: "Пакеты для мусора", status: "Заканчивается", assignee: "Даша" },
+            { id: 3, title: "Губки для посуды", status: "Купить срочно!", assignee: "Света" }
+        ];
+
+        let state = {
+            rules: DEFAULT_RULES,
+            milkIndex: 0,
+            duty: DEFAULT_DUTY_ROTATION,
+            purchases: DEFAULT_PURCHASES,
+            stock: DEFAULT_STOCK
+        };
+
+        // Realtime Sync from Firebase
+        roomRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                state.rules = data.rules || [];
+                state.milkIndex = data.milkIndex !== undefined ? data.milkIndex : 0;
+                state.duty = data.duty || DEFAULT_DUTY_ROTATION;
+                state.purchases = data.purchases || [];
+                state.stock = data.stock || [];
+            } else {
+                // Initial push to cloud database if empty
+                saveState();
+            }
+            render();
+        });
+
+        function saveState() {
+            roomRef.set(state);
+        }
+
+        function resetData() {
+            if (confirm("Перезапустить все данные к исходным для всей комнаты?")) {
+                state.rules = [...DEFAULT_RULES];
+                state.milkIndex = 0;
+                state.duty = [...DEFAULT_DUTY_ROTATION];
+                state.purchases = [...DEFAULT_PURCHASES];
+                state.stock = [...DEFAULT_STOCK];
+                saveState();
+            }
+        }
+
+        function render() {
+            renderRules();
+            renderMilk();
+            renderDuty();
+            renderBalances();
+            renderPurchases();
+            renderStock();
+        }
+
+        // --- RULES ---
+        function renderRules() {
+            const grid = document.getElementById('rulesGrid');
+            if (!state.rules || state.rules.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-6 text-center text-slate-400 text-xs">Пока нет добавленных правил. Нажмите «Добавить правило» выше!</div>`;
+                return;
+            }
+            grid.innerHTML = state.rules.map(r => `
+                <div class="bg-latte/80 backdrop-blur p-3.5 rounded-2xl border border-amber-200/60 shadow-2xs flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <span class="text-base flex-shrink-0">${r.icon || '✨'}</span>
+                        <span class="text-xs text-slate-700 font-medium truncate">${escapeHtml(r.text)}</span>
+                    </div>
+                    <button onclick="deleteRule(${r.id})" class="text-slate-300 hover:text-sangria-500 text-xs p-1 flex-shrink-0 transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function toggleAddRuleForm() {
+            document.getElementById('addRuleForm').classList.toggle('hidden');
+        }
+
+        function handleAddRule(e) {
+            e.preventDefault();
+            const icon = document.getElementById('ruleIcon').value.trim() || '✨';
+            const text = document.getElementById('ruleText').value.trim();
+            if (text) {
+                if (!state.rules) state.rules = [];
+                state.rules.push({ id: Date.now(), icon, text });
+                saveState();
+                document.getElementById('ruleText').value = '';
+                document.getElementById('ruleIcon').value = '✨';
+                toggleAddRuleForm();
+            }
+        }
+
+        function deleteRule(id) {
+            state.rules = state.rules.filter(r => r.id !== id);
+            saveState();
+        }
+
+        // --- MILK ---
+        function renderMilk() {
+            const currentBuyer = MILK_QUEUE[state.milkIndex % MILK_QUEUE.length];
+            const avatars = { "Даша": "🎀", "Маша": "🌸", "Рита": "🌼", "Света": "✨" };
+            document.getElementById('currentMilkBuyer').innerHTML = `
+                <span>${avatars[currentBuyer] || '🥛'}</span>
+                <span>${currentBuyer}</span>
+            `;
+        }
+
+        function advanceMilkQueue() {
+            state.milkIndex = (state.milkIndex + 1) % MILK_QUEUE.length;
+            saveState();
+        }
+
+        // --- DUTY ---
+        function renderDuty() {
+            const avatars = { "Даша": "🎀", "Маша": "🌸", "Рита": "🌼", "Света": "✨" };
+            const container = document.getElementById('dutyGrid');
+            container.innerHTML = state.duty.map((item, idx) => {
+                const isCurrent = idx === 0;
+                return `
+                    <div class="p-4 rounded-2xl border ${isCurrent ? 'bg-sage-50/90 border-sage-500/40' : 'bg-latte/70 border-amber-200/50'} flex flex-col justify-between space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-bold uppercase tracking-wider ${isCurrent ? 'text-sage-600 bg-white px-2 py-0.5 rounded-full border border-sage-500/30' : 'text-slate-400'}">
+                                ${item.weekLabel}
+                            </span>
+                            <label class="inline-flex items-center gap-1 text-xs cursor-pointer">
+                                <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleDutyDone(${idx})" class="accent-sage-500 w-4 h-4 rounded">
+                                <span class="text-[11px] ${item.done ? 'text-emerald-700 font-bold' : 'text-slate-400'}">${item.done ? 'Готово!' : 'Сделано'}</span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <div class="text-base font-bold text-slate-800 flex items-center gap-1.5">
+                                <span>${avatars[item.person] || '👤'}</span>
+                                <span>${item.person}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Дежурная по комнате</p>
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-200/60">
+                            <label class="block text-[10px] text-slate-400 mb-1">День / дата уборки:</label>
+                            <input type="text" placeholder="например, Суббота / 12 марта" value="${escapeHtml(item.date || '')}" onchange="updateDutyDate(${idx}, this.value)" class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-cornflower-500">
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleDutyDone(idx) {
+            state.duty[idx].done = !state.duty[idx].done;
+            saveState();
+        }
+
+        function updateDutyDate(idx, dateVal) {
+            state.duty[idx].date = dateVal;
+            saveState();
+        }
+
+        function rotateDuty() {
+            const first = state.duty.shift();
+            first.done = false;
+            first.date = "";
+            state.duty.push(first);
+            state.duty[0].weekLabel = "Текущая неделя";
+            state.duty[1].weekLabel = "Следующая неделя";
+            state.duty[2].weekLabel = "Через 2 недели";
+            state.duty[3].weekLabel = "Через 3 недели";
+            saveState();
+        }
+
+        // --- BALANCES ---
+        function renderBalances() {
+            let net = { "Даша": 0, "Маша": 0, "Рита": 0, "Света": 0 };
+
+            if (state.purchases) {
+                state.purchases.forEach(p => {
+                    const payer = p.payer;
+                    const amount = Number(p.amount);
+                    const targets = p.targets && p.targets.length > 0 ? p.targets : ROOMMATES;
+                    const share = amount / targets.length;
+
+                    targets.forEach(t => {
+                        const paid = p.paidBy && p.paidBy[t];
+                        if (!paid && t !== payer) {
+                            net[t] -= share;
+                            net[payer] += share;
+                        }
+                    });
+                });
+            }
+
+            const avatars = { "Даша": "🎀", "Маша": "🌸", "Рита": "🌼", "Света": "✨" };
+            const cardsContainer = document.getElementById('balanceCards');
+            cardsContainer.innerHTML = ROOMMATES.map(person => {
+                const balance = Math.round(net[person]);
+                const badgeClass = balance > 0 
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                    : balance < 0 
+                    ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                    : 'bg-slate-50 text-slate-600 border-slate-200';
+                
+                const balanceText = balance > 0 ? `+${balance} ₽` : balance < 0 ? `${balance} ₽` : `0 ₽`;
+                const subText = balance > 0 ? 'Ей должны' : balance < 0 ? 'Она должна' : 'Все всё сдали';
+
+                return `
+                    <div class="p-3 rounded-2xl bg-latte border border-amber-200/60 flex flex-col justify-between">
+                        <div class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                            <span>${avatars[person]}</span> ${person}
+                        </div>
+                        <div class="my-1">
+                            <span class="inline-block text-xs font-extrabold px-2 py-0.5 rounded-lg border ${badgeClass}">
+                                ${balanceText}
+                            </span>
+                        </div>
+                        <div class="text-[10px] text-slate-400">
+                            ${subText}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const settlements = calculateSettlements(net);
+            const settlementList = document.getElementById('settlementList');
+
+            if (settlements.length === 0) {
+                settlementList.innerHTML = `<span class="text-emerald-600 font-medium italic">✨ Все рассчитались! Никто никому не должен.</span>`;
+            } else {
+                settlementList.innerHTML = settlements.map(s => `
+                    <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded-xl border border-amber-100">
+                        <div>
+                            <strong class="text-slate-800">${s.from}</strong> ➔ <strong class="text-slate-800">${s.to}</strong>
+                        </div>
+                        <span class="font-bold text-sangria-500 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">${s.amount} ₽</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function calculateSettlements(netBalances) {
+            let debtors = [];
+            let creditors = [];
+
+            for (let person in netBalances) {
+                let amount = Math.round(netBalances[person]);
+                if (amount < -1) debtors.push({ person, amount: -amount });
+                else if (amount > 1) creditors.push({ person, amount });
+            }
+
+            debtors.sort((a, b) => b.amount - a.amount);
+            creditors.sort((a, b) => b.amount - a.amount);
+
+            let res = [];
+            let i = 0, j = 0;
+
+            while (i < debtors.length && j < creditors.length) {
+                let debt = debtors[i].amount;
+                let credit = creditors[j].amount;
+                let settled = Math.min(debt, credit);
+
+                res.push({
+                    from: debtors[i].person,
+                    to: creditors[j].person,
+                    amount: Math.round(settled)
+                });
+
+                debtors[i].amount -= settled;
+                creditors[j].amount -= settled;
+
+                if (debtors[i].amount <= 1) i++;
+                if (creditors[j].amount <= 1) j++;
+            }
+            return res;
+        }
+
+        // --- PURCHASES ---
+        function renderPurchases() {
+            const list = document.getElementById('purchasesList');
+            const emptyMsg = document.getElementById('emptyPurchasesMsg');
+
+            if (!state.purchases || state.purchases.length === 0) {
+                list.innerHTML = '';
+                emptyMsg.classList.remove('hidden');
+                return;
+            }
+            emptyMsg.classList.add('hidden');
+
+            list.innerHTML = state.purchases.map(p => {
+                const targets = p.targets || ROOMMATES;
+                const perPersonShare = Math.round(p.amount / targets.length);
+
+                const personChips = targets.map(person => {
+                    const isPaid = p.paidBy && p.paidBy[person];
+                    const isPayer = person === p.payer;
+                    const chipStyle = (isPaid || isPayer) 
+                        ? 'bg-emerald-500 text-white border-emerald-600 font-bold shadow-2xs' 
+                        : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200';
+
+                    return `
+                        <button onclick="toggleIndividualPaid(${p.id}, '${person}')" 
+                                title="${isPayer ? 'Покупатель (оплатила)' : isPaid ? 'Скинулась (Зелёная)' : 'Нажмите когда переведёт ' + perPersonShare + '₽'}"
+                                class="px-2.5 py-1 rounded-xl text-xs border transition flex items-center gap-1 cursor-pointer ${chipStyle}">
+                            <span>${(isPaid || isPayer) ? '✓' : '○'}</span>
+                            <span>${person}</span>
+                        </button>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="p-4 rounded-2xl border border-amber-200/60 bg-latte/40 hover:bg-white transition space-y-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-bold text-slate-800 text-sm">${escapeHtml(p.title)}</h3>
+                                    <span class="text-[10px] text-slate-400 bg-white px-2 py-0.5 rounded-md border border-slate-200">${p.date || 'Сегодня'}</span>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-0.5">
+                                    Купила: <strong class="text-slate-700">${p.payer}</strong> • Доля с каждой: <strong class="text-slate-700">${perPersonShare} ₽</strong>
+                                </p>
+                            </div>
+                            
+                            <div class="flex items-center justify-between sm:justify-end gap-3">
+                                <span class="text-base font-extrabold text-slate-800 font-display">${p.amount} ₽</span>
+                                <button onclick="deletePurchase(${p.id})" class="text-slate-300 hover:text-sangria-500 text-xs p-1">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-t border-amber-100 flex flex-wrap items-center gap-2">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 mr-1">Статус перевода:</span>
+                            ${personChips}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleAddPurchaseModal() {
+            document.getElementById('addPurchaseForm').classList.toggle('hidden');
+        }
+
+        function handleAddPurchase(e) {
+            e.preventDefault();
+            const title = document.getElementById('purchTitle').value.trim();
+            const amount = parseFloat(document.getElementById('purchAmount').value);
+            const payer = document.getElementById('purchPayer').value;
+
+            const targetBoxes = document.querySelectorAll('.split-target:checked');
+            const targets = Array.from(targetBoxes).map(cb => cb.value);
+
+            if (!title || !amount || targets.length === 0) {
+                alert("Заполните название, сумму и выберите участников!");
+                return;
+            }
+
+            let initialPaidMap = {};
+            targets.forEach(t => {
+                initialPaidMap[t] = (t === payer);
+            });
+
+            const newPurch = {
+                id: Date.now(),
+                title,
+                amount,
+                payer,
+                targets,
+                paidBy: initialPaidMap,
+                date: new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
+            };
+
+            if (!state.purchases) state.purchases = [];
+            state.purchases.unshift(newPurch);
+            saveState();
+
+            document.getElementById('purchTitle').value = '';
+            document.getElementById('purchAmount').value = '';
+            toggleAddPurchaseModal();
+        }
+
+        function toggleIndividualPaid(purchId, person) {
+            const p = state.purchases.find(item => item.id === purchId);
+            if (p) {
+                if (!p.paidBy) p.paidBy = {};
+                if (person !== p.payer) {
+                    p.paidBy[person] = !p.paidBy[person];
+                    saveState();
+                }
+            }
+        }
+
+        function deletePurchase(id) {
+            if (confirm("Удалить эту покупку?")) {
+                state.purchases = state.purchases.filter(p => p.id !== id);
+                saveState();
+            }
+        }
+
+        // --- STOCK ---
+        function renderStock() {
+            const grid = document.getElementById('stockGrid');
+            if (!state.stock || state.stock.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-4 text-center text-slate-400 text-xs">Список пуст</div>`;
+                return;
+            }
+            grid.innerHTML = state.stock.map(item => {
+                let statusBadgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                if (item.status === "Заканчивается") statusBadgeClass = "bg-amber-50 text-amber-700 border-amber-200";
+                if (item.status === "Купить срочно!") statusBadgeClass = "bg-rose-50 text-rose-700 border-rose-200";
+
+                return `
+                    <div class="p-3.5 rounded-2xl bg-latte border border-amber-200/60 flex flex-col justify-between space-y-3">
+                        <div class="flex justify-between items-start gap-2">
+                            <span class="font-bold text-xs text-slate-800">${escapeHtml(item.title)}</span>
+                            <button onclick="deleteStockItem(${item.id})" class="text-slate-300 hover:text-sangria-500 text-xs">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                            <select onchange="updateStockStatus(${item.id}, this.value)" class="text-[11px] font-medium px-2 py-1 rounded-lg border ${statusBadgeClass} bg-white cursor-pointer focus:outline-none">
+                                <option value="Есть" ${item.status === 'Есть' ? 'selected' : ''}>Есть</option>
+                                <option value="Заканчивается" ${item.status === 'Заканчивается' ? 'selected' : ''}>Заканчивается</option>
+                                <option value="Купить срочно!" ${item.status === 'Купить срочно!' ? 'selected' : ''}>Купить срочно!</option>
+                            </select>
+
+                            <select onchange="updateStockAssignee(${item.id}, this.value)" class="text-[11px] px-2 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 focus:outline-none">
+                                <option value="">Кто купит?</option>
+                                ${ROOMMATES.map(r => `<option value="${r}" ${item.assignee === r ? 'selected' : ''}>${r}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function handleAddStockItem(e) {
+            e.preventDefault();
+            const input = document.getElementById('newStockTitle');
+            const title = input.value.trim();
+            if (title) {
+                if (!state.stock) state.stock = [];
+                state.stock.push({
+                    id: Date.now(),
+                    title,
+                    status: "Купить срочно!",
+                    assignee: ""
+                });
+                saveState();
+                input.value = '';
+            }
+        }
+
+        function updateStockStatus(id, status) {
+            const item = state.stock.find(s => s.id === id);
+            if (item) { item.status = status; saveState(); }
+        }
+
+        function updateStockAssignee(id, assignee) {
+            const item = state.stock.find(s => s.id === id);
+            if (item) { item.assignee = assignee; saveState(); }
+        }
+
+        function deleteStockItem(id) {
+            state.stock = state.stock.filter(s => s.id !== id);
+            saveState();
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+    </script>
+</body>
+</html>
